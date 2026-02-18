@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { GoogleGenAI } from "https://esm.sh/@google/genai@0.1.0";
+import { GoogleGenAI } from "https://esm.sh/@google/genai";
 
 declare const Deno: any;
 

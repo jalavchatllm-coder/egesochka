@@ -90,7 +90,7 @@ const HighlightedText: React.FC<{ text: string; scores: EvaluationResult['scores
                 const errorInfo = allErrors.find(e => e.text === matches[index]);
                 if (errorInfo) {
                     const criterion = CRITERIA[errorInfo.criterionKey];
-                    // Guard against missing criteria (e.g. old data with K11/K12)
+                    // Guard against missing criteria
                     if (!criterion) {
                         result.push(matches[index]);
                         return;
@@ -136,7 +136,7 @@ const EvaluationDisplay: React.FC<EvaluationDisplayProps> = ({ evaluation, essay
       setTimeout(() => setCopied(false), 2000);
   };
 
-  const totalPossibleScore = 22; // Updated max score based on new criteria
+  const totalPossibleScore = 22; // Set to 22 based on K1-K10 criteria sum
 
   return (
     <div id="printable-area" className="bg-white p-5 md:p-8 rounded-[2rem] border border-stone-200 shadow-xl shadow-stone-200/50 animate-fade-in space-y-6 md:space-y-8 printable-area">

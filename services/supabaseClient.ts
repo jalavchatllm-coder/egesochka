@@ -1,11 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Safely access environment variables
-// @ts-ignore
-const env = (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env : ({} as any);
+// Declare process to satisfy TypeScript. Vite replaces these with string literals at build time.
+declare const process: {
+  env: {
+    VITE_SUPABASE_URL: string;
+    VITE_SUPABASE_ANON_KEY: string;
+  };
+};
 
-const supabaseUrl = env.VITE_SUPABASE_URL;
-const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY;
+// Access environment variables handled by Vite's define
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
     console.warn("Supabase credentials missing. Please configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.");

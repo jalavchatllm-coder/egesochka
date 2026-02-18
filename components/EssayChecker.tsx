@@ -1,7 +1,6 @@
-
 import React, { useState, useCallback, useRef } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import * as mammoth from 'mammoth';
+import mammoth from 'mammoth';
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
 import type { EvaluationResult, StoredEvaluation } from '../types';
 import { CRITERIA_GROUPS } from '../constants';
@@ -106,7 +105,6 @@ const EssayChecker: React.FC<EssayCheckerProps> = ({ session, isGuest }) => {
     setIsGenerating(true);
     setError(null);
     try {
-        // Fix: process the response object from generateEssay which now includes sources
         const result = await generateEssay(sourceText);
         setEssayText(result.text);
         setGeneratedSources(result.sources || []);
@@ -214,14 +212,13 @@ const EssayChecker: React.FC<EssayCheckerProps> = ({ session, isGuest }) => {
                                 placeholder="Напишите свое сочинение здесь..."
                                 disabled={isLoading}
                             />
-                            {/* Fix: As per guidelines, if Google Search grounding is used, MUST extract and list URLs on the web app */}
                             {generatedSources.length > 0 && (
                                 <div className="p-4 bg-stone-50 border border-stone-100 rounded-xl animate-fade-in">
                                     <h4 className="text-[10px] font-bold text-stone-400 uppercase tracking-[0.1em] mb-3 flex items-center gap-2">
                                         <svg className="w-3 h-3 text-refined-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                         </svg>
-                                        Источники (Google Search Grounding)
+                                        Источники (Google Search)
                                     </h4>
                                     <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                         {generatedSources.map((source, idx) => (
@@ -234,7 +231,7 @@ const EssayChecker: React.FC<EssayCheckerProps> = ({ session, isGuest }) => {
                                                     title={source.title}
                                                 >
                                                     <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-stone-300 group-hover:bg-refined-red transition-colors"></span>
-                                                    <span className="truncate">{source.title}</span>
+                                                    <span className="truncate font-medium">{source.title}</span>
                                                 </a>
                                             </li>
                                         ))}

@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import type { EvaluationResult } from '../types';
 
@@ -13,11 +12,23 @@ declare const process: {
 // Initialize the client using the environment variable as required by @google/genai guidelines
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
+// Helper to strip Markdown code blocks from JSON response
+const cleanJson = (text: string) => {
+  let clean = text.trim();
+  // Remove markdown code fences if present
+  if (clean.startsWith('```json')) {
+    clean = clean.replace(/^```json/, '').replace(/```$/, '');
+  } else if (clean.startsWith('```')) {
+    clean = clean.replace(/^```/, '').replace(/```$/, '');
+  }
+  return clean.trim();
+};
+
 export const evaluateEssay = async (essayText: string, sourceText: string): Promise<EvaluationResult> => {
     const evaluationSystemInstruction = `
 You are a meticulous and fair examiner for the Russian Unified State Exam (ЕГЭ), specifically grading Task 27, the essay. Your task is to evaluate the user-provided essay based on a strict set of official criteria (К1 through К10). You must analyze the essay thoroughly for each criterion and provide a score and a concise justification for that score in Russian.
 
-For criteria K7-K10 (literacy, speech norms), if the score is less than the maximum, you MUST identify the specific text fragments from the essay that contain errors. Return these fragments in an "errors" array, where each object contains the exact "text" of the error.
+For criteria K4, K5, K6 and K7-K10 (facts, logic, ethics, literacy), if the score is less than the maximum, you MUST identify the specific text fragments from the essay that contain errors. Return these fragments in an "errors" array, where each object contains the exact "text" of the error.
 
 Your final output MUST be a JSON object matching the provided schema.
 `;
@@ -31,17 +42,17 @@ ${sourceText || "No source text provided."}
 ${essayText}
 ====================================
 
-Evaluate strictly according to ЕГЭ criteria K1-K10 (Total 22 points).
+Evaluate strictly according to official ЕГЭ criteria K1-K10 (Total 22 points).
 K1 (Author Position): Max 1
 K2 (Commentary): Max 3
-K3 (Own Attitude): Max 2
-K4 (Facts): Max 1
+K3 (Own Attitude/Argument): Max 2
+K4 (Factual Precision): Max 1
 K5 (Logic): Max 2
 K6 (Ethics): Max 1
 K7 (Ortho): Max 3
 K8 (Punct): Max 3
 K9 (Grammar): Max 3
-K10 (Speech): Max 3
+K10 (Speech Norms): Max 3
 `;
 
     const scoreSchema = {
@@ -77,8 +88,9 @@ K10 (Speech): Max 3
                         scores: {
                             type: Type.OBJECT,
                             properties: {
-                                K1: scoreSchema, K2: scoreSchema, K3: scoreSchema, K4: scoreSchema, K5: scoreSchema,
-                                K6: scoreSchema, K7: scoreSchema, K8: scoreSchema, K9: scoreSchema, K10: scoreSchema,
+                                K1: scoreSchema, K2: scoreSchema, K3: scoreSchema, K4: scoreSchema, 
+                                K5: scoreSchema, K6: scoreSchema, K7: scoreSchema, K8: scoreSchema, 
+                                K9: scoreSchema, K10: scoreSchema
                             },
                             required: ['K1', 'K2', 'K3', 'K4', 'K5', 'K6', 'K7', 'K8', 'K9', 'K10']
                         },
@@ -94,8 +106,7 @@ K10 (Speech): Max 3
              throw new Error("Model returned empty response");
         }
 
-        // Fix: Use the .text property directly as per @google/genai guidelines
-        const jsonStr = response.text.trim();
+        const jsonStr = cleanJson(response.text);
         return JSON.parse(jsonStr) as EvaluationResult;
     } catch (error: any) {
         console.error("Evaluation Error:", error);

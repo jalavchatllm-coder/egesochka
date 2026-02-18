@@ -13,7 +13,7 @@ const corsHeaders = {
 const evaluationSystemInstruction = `
 You are a meticulous and fair examiner for the Russian Unified State Exam (ЕГЭ), specifically grading Task 27, the essay. Your task is to evaluate the user-provided essay based on a strict set of official criteria (К1 through К10). You must analyze the essay thoroughly for each criterion and provide a score and a concise justification for that score in Russian.
 
-For criteria K7-K10 (literacy, speech norms), if the score is less than the maximum, you MUST identify the specific text fragments from the essay that contain errors. Return these fragments in an "errors" array, where each object contains the exact "text" of the error.
+For criteria K4, K5, K6 and K7-K10 (facts, logic, ethics, literacy), if the score is less than the maximum, you MUST identify the specific text fragments from the essay that contain errors. Return these fragments in an "errors" array, where each object contains the exact "text" of the error.
 
 Your final output MUST be a JSON object matching the provided schema.
 `;
@@ -57,17 +57,17 @@ ${sourceText || "No source text provided."}
 ${essayText}
 ====================================
 
-Evaluate strictly according to ЕГЭ criteria K1-K10 (Total 22 points).
+Evaluate strictly according to official ЕГЭ criteria K1-K10 (Total 22 points).
 K1 (Author Position): Max 1
 K2 (Commentary): Max 3
-K3 (Own Attitude): Max 2
-K4 (Facts): Max 1
+K3 (Own Attitude/Argument): Max 2
+K4 (Factual Precision): Max 1
 K5 (Logic): Max 2
 K6 (Ethics): Max 1
 K7 (Ortho): Max 3
 K8 (Punct): Max 3
 K9 (Grammar): Max 3
-K10 (Speech): Max 3
+K10 (Speech Norms): Max 3
 `;
 
     const response = await ai.models.generateContent({
@@ -83,8 +83,9 @@ K10 (Speech): Max 3
                     scores: {
                         type: Type.OBJECT,
                         properties: {
-                            K1: scoreSchema, K2: scoreSchema, K3: scoreSchema, K4: scoreSchema, K5: scoreSchema,
-                            K6: scoreSchema, K7: scoreSchema, K8: scoreSchema, K9: scoreSchema, K10: scoreSchema,
+                            K1: scoreSchema, K2: scoreSchema, K3: scoreSchema, K4: scoreSchema, 
+                            K5: scoreSchema, K6: scoreSchema, K7: scoreSchema, K8: scoreSchema, 
+                            K9: scoreSchema, K10: scoreSchema
                         },
                         required: ['K1', 'K2', 'K3', 'K4', 'K5', 'K6', 'K7', 'K8', 'K9', 'K10']
                     },

@@ -1,20 +1,39 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Refined Quill — ЕГЭ Русский Сочинение
 
-# Run and deploy your AI Studio app
+Веб-приложение для автоматической проверки сочинений ЕГЭ по русскому языку (Задание 27) с использованием Google Gemini API.
 
-This contains everything you need to run your app locally.
+## Функционал
+- ⚡ Мгновенная проверка по критериям К1-К10.
+- 🧠 Использование модели Gemini 3 Pro (Thinking Model) для глубокого анализа.
+- 📝 Подсветка ошибок в тексте.
+- 📊 История проверок и статистика (требуется Supabase).
 
-View your app in AI Studio: https://ai.studio/apps/drive/1dNjYTBq7eGIzZoz6k1LeC_1tnZAWGdrm
+## Локальный запуск
 
-## Run Locally
+1. Установите зависимости:
+   ```bash
+   npm install
+   ```
+2. Создайте файл `.env` в корне проекта и добавьте ключи:
+   ```env
+   API_KEY=ваш_ключ_gemini
+   VITE_SUPABASE_URL=ваш_url_supabase (опционально)
+   VITE_SUPABASE_ANON_KEY=ваш_ключ_supabase (опционально)
+   ```
+3. Запустите проект:
+   ```bash
+   npm run dev
+   ```
 
-**Prerequisites:**  Node.js
+## Развертывание на Vercel
 
+Этот проект настроен для деплоя на Vercel как Vite SPA приложение.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+1. Загрузите код в репозиторий GitHub.
+2. Импортируйте проект в Vercel.
+3. Убедитесь, что `Framework Preset` установлен как `Vite`.
+4. В настройках **Environment Variables** добавьте:
+   - `API_KEY`: Обязательно (ключ от AI Studio).
+   - `VITE_SUPABASE_URL`: Если нужна база данных.
+   - `VITE_SUPABASE_ANON_KEY`: Если нужна база данных.
+5. Нажмите **Deploy**.

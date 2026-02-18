@@ -2,8 +2,15 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import type { EvaluationResult } from '../types';
 
+// Declare process to satisfy TypeScript in the browser context.
+// Vite replaces process.env.API_KEY with the string literal at build time.
+declare const process: {
+  env: {
+    API_KEY: string;
+  };
+};
+
 // Initialize the client using the environment variable as required by @google/genai guidelines
-// Fix: removed @ts-ignore and ensured strictly following the named parameter initialization
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const evaluateEssay = async (essayText: string, sourceText: string): Promise<EvaluationResult> => {

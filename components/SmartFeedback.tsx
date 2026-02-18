@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React from 'react';
 import type { EvaluationResult, CriteriaKeys, CriterionScore } from '../types';
 import { CRITERIA } from '../constants';
 

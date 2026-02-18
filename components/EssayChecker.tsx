@@ -1,9 +1,9 @@
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import * as mammoth from 'mammoth';
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
-import type { EvaluationResult, CriterionGroup, StoredEvaluation } from '../types';
+import type { EvaluationResult, StoredEvaluation } from '../types';
 import { CRITERIA_GROUPS } from '../constants';
 import { evaluateEssay, generateEssay } from '../services/geminiService';
 import EvaluationDisplay from './EvaluationDisplay';

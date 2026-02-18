@@ -1,0 +1,5 @@
+{
+  "name": "ЕГЭ Русский Сочинение Проверка",
+  "description": "An interactive tool to evaluate Russian essays for the Unified State Exam (ЕГЭ) based on official criteria, providing a detailed score breakdown and feedback using AI.",
+  "requestFramePermissions": []
+}

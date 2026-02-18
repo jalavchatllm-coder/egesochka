@@ -20,6 +20,18 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "supabase", "dist", "**/*.spec.ts", "**/*.test.ts", "vite.config.ts"]
+  "include": [
+    "components",
+    "services",
+    "*.ts",
+    "*.tsx"
+  ],
+  "exclude": [
+    "node_modules", 
+    "supabase",
+    "dist", 
+    "**/*.spec.ts", 
+    "**/*.test.ts",
+    "vite.config.ts"
+  ]
 }

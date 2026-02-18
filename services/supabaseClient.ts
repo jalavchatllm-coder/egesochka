@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 
 // Safely access environment variables
 // @ts-ignore
-const env = (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env : {};
+const env = (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env : ({} as any);
 
 const supabaseUrl = env.VITE_SUPABASE_URL;
 const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY;

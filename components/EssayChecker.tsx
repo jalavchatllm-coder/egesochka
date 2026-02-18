@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import * as mammoth from 'mammoth';
@@ -40,6 +41,7 @@ const EssayChecker: React.FC<EssayCheckerProps> = ({ session, isGuest }) => {
   const [activeInputTab, setActiveInputTab] = useState<'source' | 'essay'>('source');
   const [sourceText, setSourceText] = useState<string>('');
   const [essayText, setEssayText] = useState<string>('');
+  const [generatedSources, setGeneratedSources] = useState<{ title: string; uri: string }[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
@@ -50,6 +52,7 @@ const EssayChecker: React.FC<EssayCheckerProps> = ({ session, isGuest }) => {
   const handleLoadExample = () => {
       setSourceText(EXAMPLE_SOURCE);
       setEssayText(EXAMPLE_ESSAY);
+      setGeneratedSources([]);
       setError(null);
   };
 
@@ -57,6 +60,7 @@ const EssayChecker: React.FC<EssayCheckerProps> = ({ session, isGuest }) => {
       if (window.confirm('Вы уверены, что хотите очистить поля?')) {
         setSourceText('');
         setEssayText('');
+        setGeneratedSources([]);
         setEvaluation(null);
         setError(null);
       }
@@ -102,8 +106,10 @@ const EssayChecker: React.FC<EssayCheckerProps> = ({ session, isGuest }) => {
     setIsGenerating(true);
     setError(null);
     try {
-        const generated = await generateEssay(sourceText);
-        setEssayText(generated);
+        // Fix: process the response object from generateEssay which now includes sources
+        const result = await generateEssay(sourceText);
+        setEssayText(result.text);
+        setGeneratedSources(result.sources || []);
         setActiveInputTab('essay');
     } catch (e: any) {
         setError(e.message || 'Ошибка генерации.');
@@ -201,12 +207,41 @@ const EssayChecker: React.FC<EssayCheckerProps> = ({ session, isGuest }) => {
                             disabled={isLoading}
                         />
                     ) : (
-                        <EssayEditor
-                            value={essayText}
-                            onChange={(text) => setEssayText(text)}
-                            placeholder="Напишите свое сочинение здесь..."
-                            disabled={isLoading}
-                        />
+                        <div className="flex flex-col flex-grow gap-4">
+                            <EssayEditor
+                                value={essayText}
+                                onChange={(text) => setEssayText(text)}
+                                placeholder="Напишите свое сочинение здесь..."
+                                disabled={isLoading}
+                            />
+                            {/* Fix: As per guidelines, if Google Search grounding is used, MUST extract and list URLs on the web app */}
+                            {generatedSources.length > 0 && (
+                                <div className="p-4 bg-stone-50 border border-stone-100 rounded-xl animate-fade-in">
+                                    <h4 className="text-[10px] font-bold text-stone-400 uppercase tracking-[0.1em] mb-3 flex items-center gap-2">
+                                        <svg className="w-3 h-3 text-refined-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                        Источники (Google Search Grounding)
+                                    </h4>
+                                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        {generatedSources.map((source, idx) => (
+                                            <li key={idx}>
+                                                <a 
+                                                    href={source.uri} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer" 
+                                                    className="text-[11px] text-stone-600 hover:text-refined-red transition-colors flex items-center gap-2 group truncate bg-white px-3 py-2 rounded-lg border border-stone-100 shadow-sm"
+                                                    title={source.title}
+                                                >
+                                                    <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-stone-300 group-hover:bg-refined-red transition-colors"></span>
+                                                    <span className="truncate">{source.title}</span>
+                                                </a>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
                     )}
                     
                     {/* Quick Action Buttons */}

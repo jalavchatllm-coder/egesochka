@@ -1,8 +1,9 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import type { EvaluationResult } from '../types';
 
-// Initialize the client using the environment variable as required
-// @ts-ignore
+// Initialize the client using the environment variable as required by @google/genai guidelines
+// Fix: removed @ts-ignore and ensured strictly following the named parameter initialization
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const evaluateEssay = async (essayText: string, sourceText: string): Promise<EvaluationResult> => {
@@ -86,6 +87,7 @@ K10 (Speech): Max 3
              throw new Error("Model returned empty response");
         }
 
+        // Fix: Use the .text property directly as per @google/genai guidelines
         const jsonStr = response.text.trim();
         return JSON.parse(jsonStr) as EvaluationResult;
     } catch (error: any) {
@@ -94,7 +96,7 @@ K10 (Speech): Max 3
     }
 };
 
-export const generateEssay = async (sourceText: string): Promise<string> => {
+export const generateEssay = async (sourceText: string): Promise<{ text: string; sources?: { title: string; uri: string }[] }> => {
     const generationPrompt = `
     Напиши идеальное сочинение ЕГЭ по русскому языку (задание 27) на основе приведенного текста. 
     Используй Google Search для проверки любых литературных аргументов или исторических фактов, которые ты приводишь в обосновании (K3).
@@ -120,7 +122,18 @@ export const generateEssay = async (sourceText: string): Promise<string> => {
              throw new Error("Model returned empty text");
         }
 
-        return response.text;
+        // Fix: Extract grounding metadata URLs when using googleSearch tool as required by guidelines
+        const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks
+            ?.filter((chunk: any) => chunk.web)
+            .map((chunk: any) => ({
+                title: chunk.web.title,
+                uri: chunk.web.uri
+            }));
+
+        return {
+            text: response.text,
+            sources: sources
+        };
     } catch (error: any) {
         console.error("Generation Error:", error);
         throw new Error("Ошибка при генерации сочинения: " + (error.message || "Неизвестная ошибка"));

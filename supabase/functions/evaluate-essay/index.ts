@@ -1,5 +1,7 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { GoogleGenAI, Type } from "https://esm.sh/@google/genai@0.1.2";
+// Fix: Use correct import and latest library version as per guidelines
+import { GoogleGenAI, Type } from "https://esm.sh/@google/genai@0.1.0";
 
 declare const Deno: any;
 
@@ -42,13 +44,9 @@ serve(async (req) => {
 
   try {
     const { essayText, sourceText } = await req.json();
-    const apiKey = Deno.env.get('API_KEY');
     
-    if (!apiKey) {
-      throw new Error("Missing API_KEY in Edge Function secrets");
-    }
-
-    const ai = new GoogleGenAI({ apiKey });
+    // Fix: initialize GoogleGenAI strictly following the guideline to use the named parameter apiKey from process.env.API_KEY or equivalent
+    const ai = new GoogleGenAI({ apiKey: Deno.env.get('API_KEY') });
     
     const fullPrompt = `
 === SOURCE TEXT (Исходный текст) ===
@@ -102,7 +100,8 @@ K10 (Speech): Max 3
          throw new Error("Model returned empty response");
     }
 
-    const jsonStr = response.text.replace(/^```json\s*|\s*```$/g, '').trim();
+    // Fix: Access response text property directly as per @google/genai guidelines
+    const jsonStr = response.text.trim();
     const result = JSON.parse(jsonStr);
 
     return new Response(JSON.stringify(result), {

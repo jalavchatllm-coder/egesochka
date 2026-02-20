@@ -6,7 +6,6 @@ import Loader from './Loader';
 
 interface StatisticsProps {
     session: Session | null;
-    isGuest: boolean;
 }
 
 const StatCard: React.FC<{ title: string; value: string | number }> = ({ title, value }) => (
@@ -146,7 +145,7 @@ const ScoreChart: React.FC<{ data: StoredEvaluation[] }> = ({ data }) => {
   );
 };
 
-const Statistics: React.FC<StatisticsProps> = ({ session, isGuest }) => {
+const Statistics: React.FC<StatisticsProps> = ({ session }) => {
     const [evaluations, setEvaluations] = useState<StoredEvaluation[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -159,9 +158,6 @@ const Statistics: React.FC<StatisticsProps> = ({ session, isGuest }) => {
                         .select('*')
                         .eq('user_id', session.user.id);
                     setEvaluations(data || []);
-                } else if (isGuest) {
-                    const stored = localStorage.getItem('guest_evaluations');
-                    setEvaluations(stored ? JSON.parse(stored) : []);
                 }
             } catch (err) {
                 console.error(err);
@@ -170,7 +166,7 @@ const Statistics: React.FC<StatisticsProps> = ({ session, isGuest }) => {
             }
         };
         fetchEvaluations();
-    }, [session, isGuest]);
+    }, [session]);
 
     const stats = useMemo(() => {
         if (evaluations.length === 0) return { average: "0", best: 0, count: 0 };

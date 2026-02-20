@@ -5,13 +5,12 @@ import { ViewState } from '../App';
 
 interface AppHeaderProps {
   session: Session | null;
-  isGuest: boolean;
   view: ViewState;
   setView: (view: ViewState) => void;
   onSignOut: () => void;
 }
 
-const AppHeader: React.FC<AppHeaderProps> = ({ session, isGuest, view, setView, onSignOut }) => {
+const AppHeader: React.FC<AppHeaderProps> = ({ session, view, setView, onSignOut }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -32,7 +31,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ session, isGuest, view, setView, 
     };
   }, []);
 
-  const isAuthenticated = session || isGuest;
+  const isAuthenticated = !!session;
 
   return (
     <header className="mb-8 sticky top-0 z-50 pt-4">
@@ -108,8 +107,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({ session, isGuest, view, setView, 
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-3 w-56 bg-white border border-stone-100 rounded-2xl shadow-xl z-50 overflow-hidden animate-fade-in">
                       <div className="px-5 py-4 border-b border-stone-100 bg-stone-50/50">
-                        <p className="text-xs text-stone-500 uppercase tracking-wider mb-1">{session ? 'Аккаунт' : 'Гость'}</p>
-                        <p className="font-semibold text-stone-800 truncate">{session ? session.user.email : 'Локальный режим'}</p>
+                        <p className="text-xs text-stone-500 uppercase tracking-wider mb-1">Аккаунт</p>
+                        <p className="font-semibold text-stone-800 truncate">{session?.user.email}</p>
                       </div>
                       <div className="p-2 space-y-1">
                         <button onClick={() => handleSetView('checker')} className="w-full text-left px-4 py-2 text-sm text-stone-600 hover:bg-stone-50 rounded-lg transition-colors md:hidden">Главная</button>

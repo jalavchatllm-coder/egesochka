@@ -2,7 +2,7 @@ import React, { useState, useCallback, useRef } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import mammoth from 'mammoth';
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
-import type { EvaluationResult, StoredEvaluation } from '../types';
+import type { EvaluationResult } from '../types';
 import { CRITERIA_GROUPS } from '../constants';
 import { evaluateEssay, generateEssay } from '../services/geminiService';
 import EvaluationDisplay from './EvaluationDisplay';
@@ -11,7 +11,6 @@ import EssayEditor from './EssayEditor';
 
 interface EssayCheckerProps {
     session: Session | null;
-    isGuest: boolean;
 }
 
 const EXAMPLE_SOURCE = `(1)Когда я учился в школе, я думал, что взрослые всё знают. (2)Мне казалось, что стоит человеку вырасти, и ему открываются все тайны мироздания. (3)Но вот я вырос. (4)И что же? (5)Тайн стало ещё больше. (6)Раньше я не замечал, как удивительно устроен лист клёна или как сложно понять другого человека. (7)Теперь я вижу это на каждом шагу.
@@ -36,7 +35,7 @@ const UploadIcon = () => (
     </svg>
 );
 
-const EssayChecker: React.FC<EssayCheckerProps> = ({ session, isGuest }) => {
+const EssayChecker: React.FC<EssayCheckerProps> = ({ session }) => {
   const [activeInputTab, setActiveInputTab] = useState<'source' | 'essay'>('source');
   const [sourceText, setSourceText] = useState<string>('');
   const [essayText, setEssayText] = useState<string>('');
@@ -141,18 +140,6 @@ const EssayChecker: React.FC<EssayCheckerProps> = ({ session, isGuest }) => {
             essay_text: essayText,
             result_data: result
           });
-      } else if (isGuest) {
-          const stored = localStorage.getItem('guest_evaluations');
-          const evals: StoredEvaluation[] = stored ? JSON.parse(stored) : [];
-          const newEval: StoredEvaluation = {
-              id: Date.now(),
-              created_at: new Date().toISOString(),
-              essay_text: essayText,
-              result_data: result,
-              // @ts-ignore
-              user_id: 'guest' 
-          };
-          localStorage.setItem('guest_evaluations', JSON.stringify([newEval, ...evals]));
       }
     } catch (e: any) {
       setError(e.message || 'Ошибка анализа.');
@@ -160,7 +147,7 @@ const EssayChecker: React.FC<EssayCheckerProps> = ({ session, isGuest }) => {
       clearInterval(interval);
       setIsLoading(false);
     }
-  }, [essayText, sourceText, session, isGuest]);
+  }, [essayText, sourceText, session]);
 
   const wordCount = essayText.trim() ? essayText.trim().split(/\s+/).length : 0;
 
@@ -271,7 +258,6 @@ const EssayChecker: React.FC<EssayCheckerProps> = ({ session, isGuest }) => {
                 <div className="p-4 md:p-6 pt-0 space-y-4">
                     <div className="flex justify-between items-center text-xs text-stone-400 px-2">
                         <span>{wordCount} слов (рек. 150+)</span>
-                        {isGuest && <span className="text-orange-500 bg-orange-50 px-2 py-0.5 rounded">Гостевой режим</span>}
                     </div>
 
                     {isLoading && (

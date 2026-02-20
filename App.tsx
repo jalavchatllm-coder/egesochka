@@ -12,7 +12,6 @@ export type ViewState = 'checker' | 'dashboard' | 'stats' | 'auth';
 
 const App: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
-  const [isGuest, setIsGuest] = useState(false);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<ViewState>('checker');
 
@@ -45,7 +44,6 @@ const App: React.FC = () => {
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
-            if (session) setIsGuest(false);
         });
 
         return () => subscription.unsubscribe();
@@ -59,13 +57,7 @@ const App: React.FC = () => {
           await supabase.auth.signOut();
       }
       setSession(null);
-      setIsGuest(false);
       setView('auth');
-  };
-
-  const handleGuestLogin = () => {
-      setIsGuest(true);
-      setView('checker');
   };
 
   if (loading) {
@@ -73,31 +65,31 @@ const App: React.FC = () => {
   }
 
   // Determine if we should show the main app or the auth screen
-  const isAuthenticated = session || isGuest;
+  const isAuthenticated = !!session;
 
   return (
     <div className="min-h-screen bg-refined-paper text-refined-dark font-sans flex flex-col items-center relative overflow-x-hidden selection:bg-refined-red/20 selection:text-refined-dark">
       <div className="absolute top-0 left-0 w-full h-[600px] bg-gradient-to-b from-white to-transparent opacity-60 pointer-events-none z-0"></div>
       
       <main className="w-full max-w-7xl mx-auto z-10 relative flex-grow flex flex-col px-4 md:px-8 py-6">
-        <AppHeader session={session} isGuest={isGuest} view={view} setView={setView} onSignOut={handleSignOut} />
+        <AppHeader session={session} view={view} setView={setView} onSignOut={handleSignOut} />
         <div className="flex-grow fade-in-section">
             {(() => {
                 // If not authenticated and not in guest mode, show Auth
                 if (!isAuthenticated && view !== 'auth') {
-                    return <Auth onAuthSuccess={() => setView('checker')} onGuestLogin={handleGuestLogin} />;
+                    return <Auth onAuthSuccess={() => setView('checker')} />;
                 }
 
                 switch (view) {
                 case 'auth':
-                    return <Auth onAuthSuccess={() => setView('checker')} onGuestLogin={handleGuestLogin} />;
+                    return <Auth onAuthSuccess={() => setView('checker')} />;
                 case 'dashboard':
-                    return <Dashboard session={session} isGuest={isGuest} />;
+                    return <Dashboard session={session} />;
                 case 'stats':
-                    return <Statistics session={session} isGuest={isGuest} />;
+                    return <Statistics session={session} />;
                 case 'checker':
                 default:
-                    return <EssayChecker session={session} isGuest={isGuest} />;
+                    return <EssayChecker session={session} />;
                 }
             })()}
         </div>

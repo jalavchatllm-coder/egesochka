@@ -6,10 +6,9 @@ import Loader from './Loader';
 
 interface DashboardProps {
     session: Session | null;
-    isGuest: boolean;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ session, isGuest }) => {
+const Dashboard: React.FC<DashboardProps> = ({ session }) => {
     const [evaluations, setEvaluations] = useState<StoredEvaluation[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -28,9 +27,6 @@ const Dashboard: React.FC<DashboardProps> = ({ session, isGuest }) => {
 
                 if (error) throw error;
                 setEvaluations(data || []);
-            } else if (isGuest) {
-                const stored = localStorage.getItem('guest_evaluations');
-                setEvaluations(stored ? JSON.parse(stored) : []);
             }
         } catch (err: any) {
             setError("Не удалось загрузить историю проверок.");
@@ -41,7 +37,7 @@ const Dashboard: React.FC<DashboardProps> = ({ session, isGuest }) => {
 
     useEffect(() => {
         fetchEvaluations();
-    }, [session, isGuest]);
+    }, [session]);
 
     if (loading) return <div className="flex justify-center py-20"><Loader /></div>;
 
@@ -61,7 +57,7 @@ const Dashboard: React.FC<DashboardProps> = ({ session, isGuest }) => {
 
     return (
         <div className="space-y-6 max-w-4xl mx-auto pb-12 animate-fade-in">
-            <h2 className="text-3xl font-serif font-bold text-refined-dark mb-8">История Проверок {isGuest && <span className="text-sm font-sans font-normal text-stone-400 bg-stone-100 px-2 py-1 rounded-md ml-2 align-middle">Локально</span>}</h2>
+            <h2 className="text-3xl font-serif font-bold text-refined-dark mb-8">История Проверок</h2>
             {evaluations.map((item) => (
                 <div key={item.id} className="bg-white p-6 rounded-2xl border border-stone-200 hover:border-refined-red/30 transition-all shadow-sm">
                     <div className="flex justify-between items-center">

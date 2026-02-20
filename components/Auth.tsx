@@ -5,10 +5,9 @@ import GoogleIcon from './GoogleIcon';
 
 interface AuthProps {
     onAuthSuccess?: () => void;
-    onGuestLogin?: () => void;
 }
 
-const Auth: React.FC<AuthProps> = ({ onAuthSuccess, onGuestLogin }) => {
+const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
@@ -32,7 +31,7 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess, onGuestLogin }) => {
 
   const handleGoogleLogin = async () => {
     if (!isSupabaseConfigured()) {
-        setError('Ошибка подключения к базе данных. Используйте гостевой вход.');
+        setError('Ошибка подключения к базе данных.');
         return;
     }
 
@@ -105,7 +104,7 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess, onGuestLogin }) => {
 
     } catch (error: any) {
       console.error("Google Login Error:", error);
-      setError('Ошибка инициализации входа. Попробуйте Email или Гостевой режим.');
+      setError('Ошибка инициализации входа. Попробуйте Email.');
       setLoading(false);
     }
   };
@@ -193,16 +192,6 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess, onGuestLogin }) => {
               </div>
 
               <div className="space-y-4">
-                  {onGuestLogin && (
-                      <button
-                          type="button"
-                          onClick={onGuestLogin}
-                          className="w-full py-4 bg-refined-dark text-white font-bold text-lg rounded-xl hover:bg-black transition-all shadow-lg mb-4"
-                      >
-                          Войти как Гость
-                      </button>
-                  )}
-
                   <button
                       type="button"
                       onClick={handleGoogleLogin}

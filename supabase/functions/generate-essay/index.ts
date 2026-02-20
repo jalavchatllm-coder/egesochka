@@ -1,3 +1,5 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -9,6 +11,55 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Missing Authorization header' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error("Supabase environment variables are missing in Edge Function");
+    }
+
+    const supabaseClient = createClient(
+      supabaseUrl,
+      supabaseAnonKey,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized: Invalid token or guest user' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('profiles')
+      .select('free_checks')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || !profile) {
+       return new Response(JSON.stringify({ error: 'Profile not found' }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (profile.free_checks <= 0) {
+      return new Response(JSON.stringify({ error: 'Quota exceeded: No free checks remaining' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { sourceText } = await req.json();
     const apiKey = Deno.env.get('API_KEY');
 
@@ -52,6 +103,17 @@ Deno.serve(async (req) => {
 
     if (!text) {
          throw new Error("Model returned empty text");
+    }
+
+    // Decrement free_checks
+    const { error: updateError } = await supabaseClient
+      .from('profiles')
+      .update({ free_checks: profile.free_checks - 1 })
+      .eq('id', user.id);
+
+    if (updateError) {
+      console.error("Error updating profile quota:", updateError);
+      // We don't fail the request here, but we should log it.
     }
 
     return new Response(JSON.stringify({ essay: text }), {

@@ -9,6 +9,15 @@ export const evaluateEssay = async (essayText: string, sourceText: string): Prom
 
         if (error) {
             console.error("Supabase Function Error (evaluate-essay):", error);
+            
+            // Handle specific auth errors from the Edge Function
+            if (error.message && error.message.includes('Unauthorized')) {
+                throw new Error("Пожалуйста, войдите в систему, чтобы проверить сочинение.");
+            }
+            if (error.message && error.message.includes('Quota exceeded')) {
+                throw new Error("У вас закончились бесплатные проверки.");
+            }
+            
             throw new Error(error.message || "Ошибка при вызове функции проверки.");
         }
 
@@ -31,6 +40,15 @@ export const generateEssay = async (sourceText: string): Promise<{ text: string;
 
         if (error) {
             console.error("Supabase Function Error (generate-essay):", error);
+
+            // Handle specific auth errors from the Edge Function
+            if (error.message && error.message.includes('Unauthorized')) {
+                throw new Error("Пожалуйста, войдите в систему, чтобы сгенерировать сочинение.");
+            }
+            if (error.message && error.message.includes('Quota exceeded')) {
+                throw new Error("У вас закончились бесплатные генерации.");
+            }
+
             throw new Error(error.message || "Ошибка при вызове функции генерации.");
         }
 

@@ -12,7 +12,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // allows UI to show friendly error instead of blank screen.
 export const supabase = createClient(
     supabaseUrl || 'https://placeholder.supabase.co', 
-    supabaseAnonKey || 'placeholder'
+    supabaseAnonKey || 'placeholder',
+    {
+        global: {
+            fetch: (...args) => fetch(...args)
+        }
+    }
 );
 
 export const isSupabaseConfigured = () => {

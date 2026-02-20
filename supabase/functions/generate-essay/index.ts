@@ -1,14 +1,9 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { GoogleGenAI } from "https://esm.sh/@google/genai";
-
-declare const Deno: any;
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -20,8 +15,6 @@ serve(async (req) => {
     if (!apiKey) {
         throw new Error("Missing API_KEY in Edge Function secrets");
     }
-
-    const ai = new GoogleGenAI({ apiKey });
 
     const generationPrompt = `
     Напиши идеальное сочинение ЕГЭ по русскому языку (задание 27) на основе приведенного текста. 
@@ -35,23 +28,38 @@ serve(async (req) => {
     ======================
     `;
 
-    const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: generationPrompt,
-        config: {
+    // Use direct REST API call
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            contents: [{
+                parts: [{ text: generationPrompt }]
+            }],
             tools: [{ googleSearch: {} }]
-        }
+        })
     });
 
-    if (!response.text) {
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Gemini API Error: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!text) {
          throw new Error("Model returned empty text");
     }
 
-    return new Response(JSON.stringify({ essay: response.text }), {
+    return new Response(JSON.stringify({ essay: text }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error: any) {
+    console.error("Edge Function Error:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

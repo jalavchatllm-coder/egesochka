@@ -23,16 +23,14 @@
   "include": [
     "components",
     "services",
-    "./*.ts",
-    "./*.tsx"
+    "*.ts",
+    "*.tsx"
   ],
   "exclude": [
     "node_modules",
     "supabase",
-    "supabase/**/*",
     "dist",
     "**/*.spec.ts",
-    "**/*.test.ts",
-    "vite.config.ts"
+    "**/*.test.ts"
   ]
 }

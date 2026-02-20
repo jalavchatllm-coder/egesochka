@@ -1,13 +1,14 @@
-
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-// Fix: Use correct import and latest library version as per guidelines
-import { GoogleGenAI, Type } from "https://esm.sh/@google/genai";
-
-declare const Deno: any;
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+// Define types locally since we aren't importing the SDK
+const Type = {
+    OBJECT: "OBJECT",
+    STRING: "STRING",
+    INTEGER: "INTEGER",
+    ARRAY: "ARRAY"
 };
 
 const evaluationSystemInstruction = `
@@ -37,7 +38,7 @@ const scoreSchema = {
     required: ['score', 'comment']
 };
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -45,9 +46,11 @@ serve(async (req) => {
   try {
     const { essayText, sourceText } = await req.json();
     
-    // Fix: initialize GoogleGenAI strictly following the guideline to use the named parameter apiKey from process.env.API_KEY or equivalent
-    const ai = new GoogleGenAI({ apiKey: Deno.env.get('API_KEY') });
-    
+    const apiKey = Deno.env.get('API_KEY');
+    if (!apiKey) {
+      throw new Error("API_KEY is not set in Edge Function secrets.");
+    }
+
     const fullPrompt = `
 === SOURCE TEXT (Исходный текст) ===
 ${sourceText || "No source text provided."}
@@ -70,39 +73,59 @@ K9 (Grammar): Max 3
 K10 (Speech Norms): Max 3
 `;
 
-    const response = await ai.models.generateContent({
-        model: "gemini-3-pro-preview",
-        contents: fullPrompt,
-        config: {
-            systemInstruction: evaluationSystemInstruction,
-            thinkingConfig: { thinkingBudget: 32768 },
-            responseMimeType: "application/json",
-            responseSchema: {
-                type: Type.OBJECT,
-                properties: {
-                    scores: {
-                        type: Type.OBJECT,
-                        properties: {
-                            K1: scoreSchema, K2: scoreSchema, K3: scoreSchema, K4: scoreSchema, 
-                            K5: scoreSchema, K6: scoreSchema, K7: scoreSchema, K8: scoreSchema, 
-                            K9: scoreSchema, K10: scoreSchema
-                        },
-                        required: ['K1', 'K2', 'K3', 'K4', 'K5', 'K6', 'K7', 'K8', 'K9', 'K10']
-                    },
-                    totalScore: { type: Type.INTEGER },
-                    overallFeedback: { type: Type.STRING }
-                },
-                required: ['scores', 'totalScore', 'overallFeedback']
-            },
+    // Use direct REST API call to avoid SDK compatibility issues in Edge Runtime
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-preview:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
         },
+        body: JSON.stringify({
+            contents: [{
+                parts: [{ text: fullPrompt }]
+            }],
+            systemInstruction: {
+                parts: [{ text: evaluationSystemInstruction }]
+            },
+            generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        scores: {
+                            type: Type.OBJECT,
+                            properties: {
+                                K1: scoreSchema, K2: scoreSchema, K3: scoreSchema, K4: scoreSchema, 
+                                K5: scoreSchema, K6: scoreSchema, K7: scoreSchema, K8: scoreSchema, 
+                                K9: scoreSchema, K10: scoreSchema
+                            },
+                            required: ['K1', 'K2', 'K3', 'K4', 'K5', 'K6', 'K7', 'K8', 'K9', 'K10']
+                        },
+                        totalScore: { type: Type.INTEGER },
+                        overallFeedback: { type: Type.STRING }
+                    },
+                    required: ['scores', 'totalScore', 'overallFeedback']
+                },
+                // Pass thinking config if supported by the model/API version
+                thinkingConfig: { thinkingBudget: 32768 } 
+            }
+        })
     });
 
-    if (!response.text) {
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Gemini API Error: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    
+    // Extract text from REST response structure
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!text) {
          throw new Error("Model returned empty response");
     }
 
-    // Fix: Access response text property directly as per @google/genai guidelines
-    const jsonStr = response.text.trim();
+    const jsonStr = text.trim();
     const result = JSON.parse(jsonStr);
 
     return new Response(JSON.stringify(result), {
@@ -110,6 +133,7 @@ K10 (Speech Norms): Max 3
     });
 
   } catch (error: any) {
+    console.error("Edge Function Error:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

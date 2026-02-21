@@ -75,17 +75,14 @@ const App: React.FC = () => {
         <AppHeader session={session} view={view} setView={setView} onSignOut={handleSignOut} />
         <div className="flex-grow fade-in-section">
             {(() => {
-                // If not authenticated and not in guest mode, show Auth
-                if (!isAuthenticated && view !== 'auth') {
-                    return <Auth onAuthSuccess={() => setView('checker')} />;
-                }
-
                 switch (view) {
                 case 'auth':
                     return <Auth onAuthSuccess={() => setView('checker')} />;
                 case 'dashboard':
+                    if (!isAuthenticated) return <Auth onAuthSuccess={() => setView('dashboard')} />;
                     return <Dashboard session={session} />;
                 case 'stats':
+                    if (!isAuthenticated) return <Auth onAuthSuccess={() => setView('stats')} />;
                     return <Statistics session={session} />;
                 case 'checker':
                 default:

@@ -50,7 +50,7 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { 
-            redirectTo: window.location.origin,
+            redirectTo: `https://${window.location.hostname}/auth/callback`,
             skipBrowserRedirect: inIframe // If in iframe, get URL instead of redirecting
         }
       });

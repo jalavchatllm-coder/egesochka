@@ -37,3 +37,11 @@ externalPort = 80
 deploymentTarget = "static"
 build = ["npm", "run", "build"]
 publicDir = "dist"
+
+[userenv]
+
+[userenv.shared]
+VITE_SUPABASE_URL = "https://sfajtyvvoyjunjwuenbk.supabase.co"
+VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmYWp0eXZ2b3lqdW5qd3VlbmJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4Mzg0MDQsImV4cCI6MjA4NjQxNDQwNH0.5ZjLsnIGJOXjm-pnWx3cgLPdXN0IIJpKWEPO9xxPAYk"
+SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmYWp0eXZ2b3lqdW5qd3VlbmJrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDgzODQwNCwiZXhwIjoyMDg2NDE0NDA0fQ.CbHsXnBwJwQGtKNcoTuXtFofF2p5sAr_f_Hzyf4uQd0"
+API_KEY = "AIzaSyA0LbQvX2hJUocU9S_TsIHYR4j5PtY6NEY"
